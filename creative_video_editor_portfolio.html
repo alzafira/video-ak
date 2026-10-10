@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Narratives | Video Editor Portfolio</title>
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Google Fonts: Space Grotesk for a modern, slightly technical feel, Inter for readable body text -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Force dark mode aesthetic
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0a0a0a',      // Deep background
+                            light: '#f5f5f5',     // Main text
+                            accent: '#ff3366',    // A punchy red/pink accent
+                            muted: '#888888',     // Secondary text/borders
+                            surface: '#141414'    // Slightly lighter than bg for cards
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    spacing: {
+                        '128': '32rem',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base Styling & Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            background-color: #0a0a0a;
+            color: #f5f5f5;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Custom Scrollbar for aesthetic consistency */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff3366;
+        }
+
+        /* Utility classes for GSAP initial states */
+        .reveal-up {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(40px);
+        }
+        .reveal-fade {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Text outline effect for big headings */
+        .text-outline {
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(245, 245, 245, 0.2);
+            transition: all 0.3s ease;
+        }
+        .text-outline:hover {
+            color: #f5f5f5;
+            -webkit-text-stroke: 1px transparent;
+        }
+
+        /* Vimeo Embed Wrapper to maintain aspect ratio (16:9) */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 ratio */
+            height: 0;
+            overflow: hidden;
+            width: 100%;
+            background-color: #000;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* Custom cursor styling (optional but adds to the vibe) */
+        .custom-cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ff3366;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+            mix-blend-mode: difference;
+            display: none; /* Hidden by default, enabled via JS on non-touch */
+        }
+        @media (pointer: fine) {
+            .custom-cursor { display: block; }
+            body { cursor: none; }
+            a, button, iframe { cursor: none; }
+        }
+        .cursor-hover {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 51, 102, 0.2);
+        }
+    </style>
+</head>
+<body class="font-sans selection:bg-brand-accent selection:text-white">
+
+    <!-- Custom Cursor -->
+    <div class="custom-cursor" id="cursor"></div>
+
+    <nav class="fixed top-0 left-0 w-full z-50 px-6 py-6 mix-blend-difference flex justify-between items-center nav-wrapper reveal-fade">
+        <div class="text-xl font-display font-bold tracking-tighter hover-target">
+            CUT<span class="text-brand-accent">.</span>
+        </div>
+        <div class="hidden md:flex gap-8 text-sm font-medium tracking-wide uppercase">
+            <a href="#video-editing" class="hover:text-brand-accent transition-colors hover-target">Video Editing</a>
+            <a href="#motion-graphics" class="hover:text-brand-accent transition-colors hover-target">Motion Graphics & AI</a>
+        </div>
+        <!-- Mobile Menu Button (visual only for this scope) -->
+        <button class="md:hidden text-brand-light hover-target">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </nav>
+    <header class="relative w-full h-screen flex flex-col justify-center px-6 md:px-24 pt-20 overflow-hidden">
+        
+        <!-- Background elements for depth -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none hero-bg">
+            <!-- Simulating film grain or subtle texture could go here -->
+            <div class="w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]"></div>
+        </div>
+
+        <div class="relative z-10 max-w-5xl">
+            <p class="hero-elem font-display text-brand-accent uppercase tracking-[0.2em] mb-4 text-sm font-bold reveal-up">Crafting Visual Rhythms</p>
+            <h1 class="hero-elem font-display text-6xl md:text-8xl lg:text-[8rem] font-bold leading-[0.9] tracking-tighter mb-8 reveal-up">
+                SHAPING <br>
+                <span class="text-outline">NARRATIVES.</span>
+            </h1>
+            <div class="hero-elem flex flex-col md:flex-row gap-8 items-start md:items-center reveal-up">
+                <p class="text-brand-muted max-w-xl font-light text-lg">
+                    Professional video editing and visual design by AASHIK. Specialized in high-impact storytelling and seamless motion aesthetics for modern digital platforms. I translate raw footage into compelling stories. Rhythm, emotions, and precision in every frame.
+                </p>
+                <a href="#video-editing" class="inline-flex items-center gap-2 border-b border-brand-accent pb-1 text-sm uppercase tracking-widest hover:text-brand-accent transition-colors hover-target group">
+                    View Showreel
+                    <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Scroll indicator -->
+        <div class="absolute bottom-10 left-6 md:left-24 flex items-center gap-4 hero-elem reveal-fade">
+            <span class="text-xs uppercase tracking-widest text-brand-muted rotate-90 origin-left">Scroll</span>
+            <div class="w-[1px] h-16 bg-brand-muted/30 overflow-hidden relative">
+                <div class="w-full h-full bg-brand-accent absolute top-[-100%] animate-[scroll_2s_ease-in-out_infinite]"></div>
+            </div>
+        </div>
+        
+        <style>
+            @keyframes scroll {
+                0% { top: -100%; }
+                50% { top: 100%; }
+                100% { top: 100%; }
+            }
+        </style>
+    </header>
+    <main>
+        <!-- Category 1: Video Editing -->
+        <section id="video-editing" class="py-32 px-4 md:px-12 lg:px-24 relative">
+            <div class="sticky top-24 z-20 mb-16 category-title reveal-fade">
+                <h2 class="font-display text-4xl md:text-6xl font-bold tracking-tighter">
+                    01 // <span class="text-brand-muted">VIDEO EDITING</span>
+                </h2>
+                <div class="w-24 h-[2px] bg-brand-accent mt-6"></div>
+            </div>
+
+            <!-- Grid for Videos -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Video 1 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379229?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 2 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379293?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 3 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379128?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 4 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234430542?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+                
+                <!-- Video 5 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234430537?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 6 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379095?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 7 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379336?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 8 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379271?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 9 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379204?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+                
+                <!-- Video 10 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379195?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 11 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379177?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 12 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379096?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- Category 2: Motion Graphics and AI Video Editing -->
+        <section id="motion-graphics" class="py-32 px-4 md:px-12 lg:px-24 bg-brand-surface/30 relative">
+            
+            <!-- Background typographic element -->
+            <div class="absolute top-0 right-0 overflow-hidden pointer-events-none opacity-5 w-full h-full flex items-center justify-end">
+                <span class="font-display text-[20vw] font-bold leading-none rotate-90 origin-right translate-x-[20%]">MOTION</span>
+            </div>
+
+            <div class="relative z-10 mb-16 category-title reveal-fade">
+                <h2 class="font-display text-4xl md:text-6xl font-bold tracking-tighter">
+                    02 // <span class="text-brand-muted">MOTION GRAPHICS & AI</span>
+                </h2>
+                <p class="mt-4 text-brand-muted max-w-xl font-light">Pushing boundaries with motion design and AI-assisted workflows.</p>
+                <div class="w-24 h-[2px] bg-brand-accent mt-6"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Video 1 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379225?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 2 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379243?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 3 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379244?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Video 4 -->
+                <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347686?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+                
+                 <!-- Video 5 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234378762?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 6 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347731?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 7 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347794?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 8 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347690?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 9 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347737?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+                
+                 <!-- Video 10 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347796?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 11 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347724?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 12 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347793?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 13 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347756?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 14 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234378763?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 15 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379374?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 16 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379324?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 17 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347787?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 18 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234426742?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 19 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234426732?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+                
+                 <!-- Video 20 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379371?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 21 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379186?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 22 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379134?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 23 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379097?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 24 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347689?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 25 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234347687?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                 <!-- Video 26 -->
+                 <div class="video-item group reveal-up">
+                    <div class="video-container hover-target">
+                        <iframe src="https://player.vimeo.com/video/1234379094?title=0&byline=0&portrait=0&color=ff3366" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 text-center text-xs text-brand-muted border-t border-brand-surface">
+        <p>&copy; 2026 Visual Narratives. Engineered with GSAP & Tailwind.</p>
+    </footer>
+
+    <!-- GSAP Core & Plugins -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+        // Custom Cursor Logic
+        const cursor = document.getElementById('cursor');
+        const hoverTargets = document.querySelectorAll('.hover-target');
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // Add class to cursor when hovering over links/buttons/iframes
+        hoverTargets.forEach(target => {
+            target.addEventListener('mouseenter', () => cursor.classList.add('cursor-hover'));
+            target.addEventListener('mouseleave', () => cursor.classList.remove('cursor-hover'));
+        });
+        
+        // Also apply to iframes (though pointer events in iframes can be tricky, this is a fallback)
+        document.querySelectorAll('iframe').forEach(iframe => {
+            iframe.addEventListener('mouseenter', () => cursor.classList.add('cursor-hover'));
+            iframe.addEventListener('mouseleave', () => cursor.classList.remove('cursor-hover'));
+        });
+
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // 1. Initial Load Timeline (Hero)
+        const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+
+        tl.to(".nav-wrapper", {
+            autoAlpha: 1,
+            duration: 1,
+            delay: 0.2
+        })
+        .to(".hero-elem", {
+            y: 0,
+            autoAlpha: 1,
+            duration: 1.2,
+            stagger: 0.2,
+            clearProps: "transform" // Clean up after animation
+        }, "-=0.8");
+
+        // 2. Parallax effect for hero background
+        gsap.to(".hero-bg", {
+            y: "30%",
+            ease: "none",
+            scrollTrigger: {
+                trigger: "header",
+                start: "top top",
+                end: "bottom top",
+                scrub: true
+            }
+        });
+
+        // 3. Scroll Animations for Video Items (Reveal Up)
+        const revealItems = document.querySelectorAll('.reveal-up');
+        
+        revealItems.forEach((item) => {
+            // Ignore elements already animated by the hero timeline
+            if(item.classList.contains('hero-elem')) return;
+
+            gsap.to(item, {
+                y: 0,
+                autoAlpha: 1,
+                duration: 1,
+                ease: "power3.out",
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top 85%", // Trigger when top of item hits 85% down viewport
+                    toggleActions: "play none none reverse"
+                }
+            });
+        });
+
+        // 4. Subtle fade in for titles and headers
+        const fadeItems = document.querySelectorAll('.reveal-fade');
+        fadeItems.forEach((item) => {
+            if(item.classList.contains('nav-wrapper') || item.classList.contains('hero-elem')) return;
+            
+            gsap.to(item, {
+                autoAlpha: 1,
+                duration: 1.5,
+                ease: "power2.out",
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top 90%",
+                }
+            });
+        });
+    </script>
+</body>
+</html>
